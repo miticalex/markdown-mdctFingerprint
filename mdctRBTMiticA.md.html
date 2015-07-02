@@ -1,0 +1,150 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>mdctRBTMiticA.md</title><style></style></head><body>
+<h1 id="table-of-contents">Table of Contents</h1>
+<ol>
+<li>Puprose of the project</li>
+<li>Different transforms used to transform the signal from time domain into frequency domain</li>
+<li>FFT - Fast algorithms used to calculate Fourier transform</li>
+</ol>
+<h1 id="1-purpose-and-goal-of-the-project">1. Purpose and goal of the project</h1>
+<ul>
+<li>The purpose of this project is to make a fingerprint of an audio record/file (usually larger than half-an-hour). In this project we decided to try to do it by extracting 2&lt;sup&gt;n&lt;/sup&gt; lower frequences (usually 1024 or 2048) from the signal.</li>
+<li>There are several invertible transforms (data can be fully retrieved from the transformed data, by the corresponding inverse-transform) that transform N discrete signals in time domain into N values in frequency domain. </li>
+<li>We chose to single out K &lt;&lt; N (K=2&lt;sup&gt;n&lt;/sup&gt;, n is integer) values on a frequency domain using some Fast FFT-like algotithms (will be mentioned later in the document). By choosing to analyse only K frequences some data will be lost, but there will remain enough data to recognize the song (in most cases). In fact, it is actually useful to reduce the quality of the song in fingerprinting for many reasons, some of which are:<ol>
+<li>Some files which represent the same song may differ in just a few signals, therefore reducing the quality of the song would actually &quot;normalize&quot; the record, thus making those two files virtually same, or at least similar enough to recognize that those two files actually represent the same record.</li>
+<li>If fingerprints are smaller it requires less time to compare and analyse the fingerprints of two different files (and to compress them), especially when they are enormousl in size.</li>
+<li>...</li>
+</ol>
+</li>
+</ul>
+<h1 id="2-different-transforms-used-to-transform-the-signal-from-time-domain-into-frequency-domain">2. Different transforms used to transform the signal from time domain into frequency domain</h1>
+<p>There are several Fourier-like transforms that can be use for this purpose, so we will first introduce &quot;Fourier transform&quot; and a few Fourier-like transforms which can also be used for this purpose. At the and, we will explain why we suggest using MDCT, and why we put it in front of Fourier-transform and other Fourier-like transforms.</p>
+<h2 id="2-1-fourier-transform-and-discrete-fourier-transform">2.1. Fourier transform and Discrete Fourier Transform</h2>
+<hr>
+<p>The Fourier transform decomposes time domain signal into the the frequencies (of sine and cosine functions) that make it up, similarly to how a musical chord can be expressed as the amplitude (or loudness) of its constituent notes. The Fourier transform of a function of time itself is a complex-valued function of frequency, whose absolute value represents the amount of that frequency present in the original function, and whose complex argument is the phase offset of the basic sinusoid in that frequency.</p>
+<p><img src="http://www.revisemri.com/images/ft.gif" alt="Fourier Transform Graphical representation"></p>
+<p>The Fourier transform is called the frequency domain representation of the original signal. </p>
+<p><a href="http://en.wikipedia.org/wiki/Fourier_transform">http://en.wikipedia.org/wiki/Fourier_transform</a>
+<a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform">http://en.wikipedia.org/wiki/Discrete_Fourier_transform</a>).</p>
+<h3 id="formula">Formula</h3>
+<hr>
+<p><strong>Fourier transform</strong> of non-discrete signal x:<br><img src="https://upload.wikimedia.org/math/9/5/1/951b8c18afd67c9975d780bd367711d5.png" alt="Fourier transform formula"></p>
+<p><strong>Inverse Fourier transform</strong> of frequency domain signal x:</p>
+<p><img src="https://upload.wikimedia.org/math/3/a/f/3af99d760f96d2c0ceef1cc8d404dfa0.png" alt="Inverse Fourier Transform formula"></p>
+<p>As in praxis we can only analise discrete time domain signal, let&#39;s define discrete fourier transform formulas:</p>
+<p><strong>Discrete Fourier Transform</strong> of discrete signal/vector x (transform N time-domain signals into N frequency-domain signals):<br><img src="https://upload.wikimedia.org/math/7/9/4/794762fd886bb34ac513d36d1babee9f.png" alt="Fourier transform formula"></p>
+<p><strong>Inverse Discrete Fourier Transform</strong> of discrete signal/vector X (transform N frequency-domain values into N time-domain signals):<br><img src="https://upload.wikimedia.org/math/c/3/2/c32c290c874f7513b8054f55b9cee31e.png" alt="Fourier transform formula"></p>
+<h1 id="2-2-sine-and-cosine-transforms">2.2. Sine and Cosine transforms</h1>
+<p>Fourier sine and cosine transforms are forms of the Fourier integral transform that <strong>do not use complex numbers</strong>.</p>
+<p>Those transforms are the forms originally used by Joseph Fourier and are still preferred in some applications, such as signal processing or statistics (supposedly due to avoiding the calculations with complex numbers)..</p>
+<h2 id="formulas-of-sine-and-cosine-transforms-">Formulas of Sine and cosine transforms:</h2>
+<p><strong>Fouruer sine transform</strong> of non-discrete signal <strong><em>f(t)</em></strong>, sometimes denoted by either <img src="https://upload.wikimedia.org/math/f/4/b/f4b46c12d94d4b700879571e9a1fb916.png" alt=""> or
+<img src="https://upload.wikimedia.org/math/c/6/f/c6fdcbd5f054bb262f4550cd85c1ff84.png" alt=""> f(t):<br><img src="https://upload.wikimedia.org/math/9/e/a/9ead86dfa4e2163455074f8e811ba4fc.png" alt="Fourier transform formula"></p>
+<p><strong>Fouruer cosine transform</strong> of non-discrete signal <strong><em>f(t)</em></strong>, sometimes denoted by either <img src="https://upload.wikimedia.org/math/2/1/f/21f6eda2a0d43a622b1475a4b1c3c546.png" alt=""> or
+<img src="https://upload.wikimedia.org/math/3/b/9/3b9ae8cc8c9555c93540587be33d1f25.png" alt=""> f(t):<br><img src="https://upload.wikimedia.org/math/8/c/a/8ca69cd187cba0f02163d3cbbdb85bfc.png" alt="Fourier transform formula"></p>
+<hr>
+<p>If <strong>f(t)</strong> is an <strong>even function</strong>, sine transform is 0, thus simpler formula can be used:<br><img src="https://upload.wikimedia.org/math/5/c/4/5c426e975fdb65a155fca6b4e749fd68.png" alt=""></p>
+<p>If <strong>f(t)</strong> is an <strong>odd function</strong>, sine transform is 0, thus simpler formula can be used:<br><img src="https://upload.wikimedia.org/math/a/2/a/a2a2ef5a0f2105093f3b1f6cfccc02d5.png" alt=""></p>
+<h4 id="-inversion-formula-"><strong>Inversion formula</strong> :</h4>
+<p><img src="https://upload.wikimedia.org/math/0/b/c/0bca2de79aa2dcc2812f1aa657783249.png" alt=""></p>
+<hr>
+<p>For the same reason as with the <em>Fourier Transform</em>, in discrete signal analysis we must use <strong>Discrete Sine and Cosine transforms</strong>.</p>
+<p>As there are many Discrete Sine and Cosine transforms, I will not mention them all, but just the one that is <strong>related to MDCT</strong> (Modified Discrete Cosine Transform), ant that is <strong>DCT-IV</strong>:<br><img src="https://upload.wikimedia.org/math/2/9/9/29902cf6803b837ae2a87e41ca48d31f.png" alt=""></p>
+<h1 id="3-fast-algorithms-used-to-calculate-fourier-transform-and-fourier-like-transforms-">3. Fast algorithms used to calculate Fourier transform and Fourier-like transforms:</h1>
+<hr>
+<p>DFT formula:<br><img src="https://upload.wikimedia.org/math/8/c/1/8c1f7035e78f628e3126cadb12ce7336.png" alt=""></p>
+<p>where k in an integer that ranges from 0 to N-1</p>
+<p>As one can easily notice from the DFT formula, for the computation of all the values of array X, we need O(n&lt;sup&gt;2&lt;/sup&gt;) operations... In this section we will explain how to exploit the periodicity of sine and cosine functions in order to reduce the computational time needed to calculate all the outputs..<br>Those algorithms are called FFT (Fast Fourier Transform)</p>
+<h2 id="3-1-fft-fast-fourier-transform">3.1 FFT - Fast Fourier Transform</h2>
+<hr>
+<p>Fast fourier transform is any algorithm that calculates DFT in pseudolinear or linear-logarithmic (O(NlogN)) complexity instead of O(N&lt;sup&gt;2&lt;/sup&gt;) complexity. As in our purposes we will always analyse 2&lt;sup&gt;n&lt;/sup&gt; sized chunks, <a href="https://en.wikipedia.org/wiki/Cooley%E2%80%93Tukey_FFT_algorithm">Cooley-Tookey algorithm</a> seems best for our purpose.</p>
+<h3 id="cooley-tookey-algorithm">Cooley Tookey algorithm</h3>
+<p>Cooley Tukey algorithm is the FFT algorithm that decomposes DFT into smaller-sized DFTs. It is invented by Carl Friedrich Gauss, and then independently rediscovered and popularized by  Cooley and Tukey 160 years later.</p>
+<p>Idea of the Cooley-Tukey algorithm is to exploit the periodicity of sine and cosine functions in order to decompose DFT into smaller-sized DFT&#39;s, and do it recursively until we decompose it to N 1 sized DFT-s, of which the only output of the transform always equals the input value...</p>
+<p>Due to the fact that we will always dealing decompose the inputs into some number of 2&lt;sup&gt;n&lt;/sup&gt; input-sized DFT&#39;s, <strong>radix-2 DFT algorithm</strong> will work the best.<br>Here is how it unifies the proces of calculating X[k] and X[k+N/2], where k is an integer ranging from 0 to N/2:</p>
+<p><img src="https://upload.wikimedia.org/math/8/c/1/8c1f7035e78f628e3126cadb12ce7336.png" alt="">
+<img src="https://upload.wikimedia.org/math/6/c/0/6c0de36c14a06ab95e934a75b6263b13.png" alt="">
+<img src="https://upload.wikimedia.org/math/6/c/0/6c0de36c14a06ab95e934a75b6263b13.png" alt=""></p>
+<p>Thanks to the periodicity of sine and cosine functions, we know can easily calculate that: </p>
+<h4 id="e-sub-k-sub-e-sub-k-n-2-sub-o-sub-k-sub-o-sub-k-n-2-sub-">E&lt;sub&gt;k&lt;/sub&gt; = E&lt;sub&gt;k+N/2&lt;/sub&gt;  &amp;  O&lt;sub&gt;k&lt;/sub&gt; = O&lt;sub&gt;k+N/2&lt;/sub&gt;</h4>
+<p>Since the calculation of the twiddle factor <img src="https://upload.wikimedia.org/math/1/3/4/134c60dd471320f218d01fc5a093f026.png" alt=""> of X(k+N/2) can be simplified in the following way:<br><img src="https://upload.wikimedia.org/math/d/5/b/d5bf798ae78743672d19a6253ae4c78c.png" alt=""></p>
+<p>we have that for    <img src="https://upload.wikimedia.org/math/f/e/4/fe40dfccfc09240284b01c8feec8b1f3.png" alt="">:</p>
+<p><img src="https://upload.wikimedia.org/math/c/7/5/c75128c95d3b002d5d01362cda2c8bea.png" alt=""></p>
+<p>After calculating all those identities we can write the pseudocode for the algorithm:</p>
+<pre><code>
+X0,...,N−1 ← ditfft2(x, N, s):             DFT of (x0, xs, x2s, ..., x(N-1)s):
+    if N = 1 then
+        X0 ← x0                                      trivial size-1 DFT base case
+    else
+        X0,...,N/2−1 ← ditfft2(x, N/2, 2s)             DFT of (x0, x2s, x4s, ...)
+        XN/2,...,N−1 ← ditfft2(x+s, N/2, 2s)           DFT of (xs, xs+2s, xs+4s, ...)
+        for k = 0 to N/2−1                          combine DFTs of two halves into full DFT:
+            t ← Xk
+            Xk ← t + exp(−2πi k/N) Xk+N/2
+            Xk+N/2 ← t − exp(−2πi k/N) Xk+N/2
+        endfor
+    endif
+</code></pre><h2 id="3-2-fdmct">3.2. FDMCT</h2>
+<p>Yet to calculate</p>
+<h2 id="4-algorithm-that-simplifies-the-calculation-of-the-first-k-frequences-of-n-signals-by-decomposing-the-signals-into-n-k-k-sized-ffts-fmdcts">4. Algorithm that simplifies the calculation of the first K frequences of N signals by decomposing the signals into N/K K sized-FFTs/FMDCTs</h2>
+<hr>
+<p>Now that we have solved the FFT algorithm, we can use it in reducing the problem of solving the algorithm used to extract first K=2&lt;sup&gt;n&lt;/sup&gt; frequences.<br>    Here is the formula for which we have to write the algorithm:<br><img src="https://upload.wikimedia.org/math/8/c/1/8c1f7035e78f628e3126cadb12ce7336.png" alt=""><br>when<strong> k</strong> runs from <strong>0 to K-1, K&lt;&lt;N</strong></p>
+<p>Problem we encounter in reducing the calculation of this formula to simpler problems is that it is harder to exploit the periodicity od sine and cosine functions.<br>In order to reduce the problem of solving K values of X array, N must be divisible by K (if it is not, we will do some padding)...
+Similarly to how we reduced the problem of solving DFT to 2 subproblems, that is solving DFTs of odd and even elements of the DFT (and some additional operations with complex numbers), now we have to reduce the problem of solving the first K frequences of the DFT of N elements into solving not 2 (which is 2<em>N/N), but to 2</em>N/K (q=N/K) subproblems of solving DFTs of K elements, which is the problem of const<em>N</em>KlogK/K = const<em>NlogK complexity. After solving those DFTs, we must perform another const</em> NlogK operations with complex numbers.. Here is how it works:    </p>
+<p><img src="FFTNtoKFormulas.png" alt="Formulas"></p>
+<p>The latest formula is crucial for the algoruthm.
+The algorithm is the following: </p>
+<pre><code>FFTNtoK(x, N, X, K):
+
+q = N/K     
+for (p=0 to 2q){    
+   calculate DFT(x[p],x[p+2q],x[p+4q],....,x[p+2N-q])  
+}   
+for (k=0 to K/2){   
+    for X[k]=0;     
+    for (p=0 to 2q){    
+        X[k]+= e^(2*PIkp*i/N)   
+        X[k+K/2]+= e^(2*PI(k+K/2)p*i/N)   
+    }   
+}
+return X
+</code></pre><p>C-code for the above algorithm:</p>
+<pre><code class="lang-c"><span class="hljs-keyword">void</span> FFT2toNK(<span class="hljs-keyword">short</span>* x, <span class="hljs-keyword">int</span> N, Complex** XPointer, <span class="hljs-keyword">int</span> K) {
+    <span class="hljs-keyword">int</span> i, k, n, p;
+    <span class="hljs-keyword">int</span> q;
+    Complex* X;
+    Complex* *FFTpk;
+
+    <span class="hljs-keyword">if</span> (N%K &gt; <span class="hljs-number">0</span>) <span class="hljs-built_in">exit</span>(<span class="hljs-number">1</span>);
+
+    q=N/K;
+
+    X=<span class="hljs-built_in">calloc</span>(K, <span class="hljs-keyword">sizeof</span>(Complex));
+    FFTpk= <span class="hljs-built_in">calloc</span>(<span class="hljs-number">2</span>*q,<span class="hljs-keyword">sizeof</span>(Complex*));
+
+    <span class="hljs-keyword">for</span> (p=<span class="hljs-number">0</span>; p&lt;<span class="hljs-number">2</span>*q;p++)
+        FFT2toN(x+p,N,<span class="hljs-number">2</span>*q, &amp;FFTpk[p]);
+
+    <span class="hljs-keyword">for</span> (k=<span class="hljs-number">0</span>;k&lt;K/<span class="hljs-number">2</span>;k++){
+        X[k].re=X[k+K/<span class="hljs-number">2</span>].re=<span class="hljs-number">0</span>;
+        X[k].im=X[k+K/<span class="hljs-number">2</span>].im=<span class="hljs-number">0</span>;
+
+        <span class="hljs-keyword">for</span> (p=<span class="hljs-number">0</span>;p&lt;<span class="hljs-number">2</span>*q;p++){
+            X[k].re     += FFTpk[p][k].re*<span class="hljs-built_in">cos</span>(<span class="hljs-number">2</span>*M_PI*k*p/N)         + FFTpk[p][k].im*<span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>*M_PI*k*p/N);
+            X[k].im     -= FFTpk[p][k].re*<span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>*M_PI*k*p/N)         - FFTpk[p][k].im*<span class="hljs-built_in">cos</span>(<span class="hljs-number">2</span>*M_PI*k*p/N);
+
+            X[k+K/<span class="hljs-number">2</span>].re += FFTpk[p][k].re*<span class="hljs-built_in">cos</span>(<span class="hljs-number">2</span>*M_PI*(k+K/<span class="hljs-number">2</span>)*p/N)   + FFTpk[p][k].im*<span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>*M_PI*(k+K/<span class="hljs-number">2</span>)*p/N);
+            X[k+K/<span class="hljs-number">2</span>].im -= FFTpk[p][k].re*<span class="hljs-built_in">sin</span>(<span class="hljs-number">2</span>*M_PI*(k+K/<span class="hljs-number">2</span>)*p/N)   - FFTpk[p][k].im*<span class="hljs-built_in">cos</span>(<span class="hljs-number">2</span>*M_PI*(k+K/<span class="hljs-number">2</span>)*p/N);
+        }
+    }
+
+    <span class="hljs-keyword">for</span> (p=<span class="hljs-number">0</span>;p&lt;<span class="hljs-number">2</span>*q;p++)
+        <span class="hljs-built_in">free</span>(FFTpk[p]);
+    <span class="hljs-built_in">free</span>(FFTpk);
+    *XPointer=X;
+}
+</code></pre>
+<h3 id="4-1-with-fft">4.1. With FFT</h3>
+<hr>
+<h3 id="4-2-with-mdct">4.2. With MDCT</h3>
+
+</body></html>
